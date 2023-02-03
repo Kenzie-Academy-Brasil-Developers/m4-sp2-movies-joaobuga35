@@ -8,6 +8,8 @@ app.use(json());
 
 app.post('/movies', createMovies)
 app.get('/movies',listAllMovies)
+app.patch('/movies/:id')
+app.delete('/movies/:id')
 
 
 app.listen(3000, async () => {

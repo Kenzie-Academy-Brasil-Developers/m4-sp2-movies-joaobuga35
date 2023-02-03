@@ -1,4 +1,5 @@
 import { QueryResult } from "pg";
+import { string } from "pg-format";
 
 export interface iMovies {
     id: number,
@@ -10,7 +11,7 @@ export interface iMovies {
 
 export type moviesCreate = Omit<iMovies,'id'>;
 
-export type moviesResult = QueryResult<iMovies>
+export type moviesResult = QueryResult<iMovies>;
 
 export interface allMoviesResult {
     previousPage?: string | null,
