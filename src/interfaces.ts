@@ -11,3 +11,10 @@ export interface iMovies {
 export type moviesCreate = Omit<iMovies,'id'>;
 
 export type moviesResult = QueryResult<iMovies>
+
+export interface allMoviesResult {
+    previousPage?: string | null,
+    nextPage?: string,
+    count: number,
+    data: Array<iMovies>
+}

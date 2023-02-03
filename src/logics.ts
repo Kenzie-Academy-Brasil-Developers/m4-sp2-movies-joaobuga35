@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { QueryConfig } from "pg";
 import { client } from "./database";
-import { iMovies, moviesCreate, moviesResult } from "./interfaces";
+import { allMoviesResult, iMovies, moviesCreate, moviesResult } from "./interfaces";
 
 export const createMovies = async (request: Request, response: Response): Promise<Response> => {
     try {
@@ -30,16 +30,29 @@ export const createMovies = async (request: Request, response: Response): Promis
 }
 
 export const listAllMovies = async (request: Request, response: Response): Promise<Response> => {
-    let perPage: any = request.query.perPage === undefined  ? 5 : request.query.perPage
-    let page: any = request.query.perPage === undefined  ? 1 : request.query.page
+    if (!request.query.page && !request.query.perPage) {
+        
+        const query: string = `
+            SELECT 
+                *
+            FROM 
+                movies_favorites
+        `
+        const queryResult:moviesResult = await client.query(query)
+        return response.status(200).json(queryResult.rows)
+    }
 
-    if (typeof page === 'string' || 0 > page) {
+    let page : number = Number(request.query.page) || 1
+    let perPage : number = Number(request.query.perPage) || 5
+
+    if (0 > page) {
         page = 1
     }
 
-    if (typeof perPage === 'string' || 0 > perPage) {
+    if (0 > perPage || perPage > 5) {
         perPage = 5
     }
+
 
     const query: string = `
         SELECT 
@@ -52,9 +65,17 @@ export const listAllMovies = async (request: Request, response: Response): Promi
         text: query,
         values: [perPage,perPage * (page - 1)]
     }
-    
     const queryResult:moviesResult = await client.query(queryConfig)
-    console.log(queryResult)
 
-    return response.status(200).json(queryResult.rows)
+    const baseUrl: string = 'http://localhost:3000/movies'
+    const prevPage:string | null = page === 1 ? null : `${baseUrl}?page=${page - 1}&perPage=${perPage}`
+    const nextPage: string = `${baseUrl}?page=${page + 1}&perPage=${perPage}`
+
+    const listMoviesResult: allMoviesResult = {
+        previousPage: prevPage,
+        nextPage: nextPage,
+        count: queryResult.rowCount,
+        data:[...queryResult.rows]
+    }
+    return response.status(200).json(listMoviesResult)
 }
