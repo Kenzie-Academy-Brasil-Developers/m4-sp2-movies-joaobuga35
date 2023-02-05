@@ -22,6 +22,7 @@ export const createMovies = async (request: Request, response: Response): Promis
                 
         const queryResult:moviesResult = await client.query(queryConfig);
         const newMovie: iMovies = queryResult.rows[0]
+
         
         return response.status(201).json(newMovie)
         

@@ -4,7 +4,7 @@ import { string } from "pg-format";
 export interface iMovies {
     id: number,
     name: string,
-    description?: string,
+    description?: string | null,
     duration: number,
     price: number
 };
