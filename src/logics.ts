@@ -151,6 +151,32 @@ export const listAllMovies = async (request: Request, response: Response): Promi
 }
 
 export const editMovie =  async (request:Request, response: Response): Promise<Response> => {
+    const id: number = parseInt(request.params.id)
+    const movieValues: any = Object.values(request.body)
+
+    const query: string = `
+        UPDATE
+            movies_favorites
+        SET
+            "name" = $1,
+            description = $2,
+            duration = $3,
+            price = $4
+        WHERE
+            id = $5
+        RETURNING *;
+    `
+
+    const queryConfig: QueryConfig = {
+        text: query,
+        values:[...movieValues, id]
+    }
+
+    console.log(queryConfig)
+
+    const queryResult: moviesResult = await client.query(queryConfig)
+
+    console.log(queryResult)
     return response.status(200).json()
 }
 
