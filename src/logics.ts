@@ -152,34 +152,41 @@ export const listAllMovies = async (request: Request, response: Response): Promi
 
 export const editMovie =  async (request:Request, response: Response): Promise<Response> => {
     const id: number = parseInt(request.params.id)
+    const movieKeys: Array<string> = Object.keys(request.body)
     const movieValues: any = Object.values(request.body)
 
     const query: string = `
         UPDATE
             movies_favorites
-        SET
-            "name" = $1,
-            description = $2,
-            duration = $3,
-            price = $4
+        SET(%I) = ROW(%L)
         WHERE
-            id = $5
+            id = $1
         RETURNING *;
+    `
+
+    const queryFormat: string = format(query,movieKeys,movieValues)
+
+    const queryConfig: QueryConfig = {
+        text: queryFormat,
+        values:[id]
+    }
+
+    const queryResult: moviesResult = await client.query(queryConfig)
+    return response.status(200).json(queryResult.rows[0])
+}
+
+export const deleteMovie =  async (request:Request, response: Response): Promise<Response> => {
+    const id: number = parseInt(request.params.id)
+
+    const query: string = `
+        DELETE FROM movies_favorites WHERE id = $1
     `
 
     const queryConfig: QueryConfig = {
         text: query,
-        values:[...movieValues, id]
+        values: [id]
     }
 
-    console.log(queryConfig)
-
-    const queryResult: moviesResult = await client.query(queryConfig)
-
-    console.log(queryResult)
-    return response.status(200).json()
-}
-
-export const deleteMovie =  async (request:Request, response: Response): Promise<Response> => {
+    await client.query(queryConfig)
     return response.status(204).json()
 }

@@ -31,14 +31,14 @@ export const verifyMovieNameExits = async (request: Request, response: Response,
     return next()
 }
 
-export const verifyMovieExist = async (request: Request, response: Response, next:NextFunction): Promise<Response | void> => {
+export const verifyMovieExists = async (request: Request, response: Response, next:NextFunction): Promise<Response | void> => {
     const id: number = parseInt(request.params.id)
 
     const query: string = `
         SELECT 
             *
         FROM 
-            movies_favorites;
+            movies_favorites
         WHERE 
             id = $1;
     `
@@ -47,6 +47,7 @@ export const verifyMovieExist = async (request: Request, response: Response, nex
         text: query,
         values: [id]
     }
+
 
     const queryResult:moviesResult = await client.query(queryConfig)
 

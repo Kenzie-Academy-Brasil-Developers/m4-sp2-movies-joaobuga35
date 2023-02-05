@@ -1,7 +1,7 @@
 import express, { Application, json, Request, Response } from 'express';
 import { startDatabase } from './database';
-import { createMovies, editMovie, listAllMovies } from './logics';
-import { verifyMovieExist } from './middlewares';
+import { createMovies, deleteMovie, editMovie, listAllMovies } from './logics';
+import { verifyMovieExists, verifyMovieNameExits } from './middlewares';
 
 
 const app:Application = express()
@@ -9,8 +9,8 @@ app.use(json());
 
 app.post('/movies', createMovies)
 app.get('/movies',listAllMovies)
-app.patch('/movies/:id', editMovie)
-app.delete('/movies/:id')
+app.patch('/movies/:id',verifyMovieExists,verifyMovieNameExits,editMovie)
+app.delete('/movies/:id',verifyMovieExists,deleteMovie)
 
 
 app.listen(3000, async () => {
