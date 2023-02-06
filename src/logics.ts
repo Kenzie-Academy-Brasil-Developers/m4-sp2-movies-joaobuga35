@@ -7,6 +7,10 @@ import { allMoviesResult, iMovies, moviesCreate, moviesResult } from "./interfac
 export const createMovies = async (request: Request, response: Response): Promise<Response> => {
     try {
         const movieCreateRequest: moviesCreate = request.body
+
+        if (movieCreateRequest.description === "") {
+            movieCreateRequest.description = null
+        }
     
         const queryString : string = `
                 INSERT INTO 
@@ -55,9 +59,9 @@ export const listAllMovies = async (request: Request, response: Response): Promi
         perPage = 5
     }
 
-    const baseUrl: string = 'http://localhost:3000/movies'
-    const prevPage:string | null = page === 1 ? null : `${baseUrl}?page=${page - 1}&perPage=${perPage}`
-    const nextPage: string = `${baseUrl}?page=${page + 1}&perPage=${perPage}`
+    let baseUrl: string = 'http://localhost:3000/movies'
+    let prevPage:string | null = page === 1 ? null : `${baseUrl}?page=${page - 1}&perPage=${perPage}`
+    let nextPage: string | null = `${baseUrl}?page=${page + 1}&perPage=${perPage}`
 
 
     if (request.query.sort && !request.query.order) {
@@ -73,6 +77,9 @@ export const listAllMovies = async (request: Request, response: Response): Promi
 
         const queryResult:moviesResult = await client.query(query)
 
+        if (queryResult.rowCount < 5) {
+            nextPage = null
+        }
 
         const listMoviesResult: allMoviesResult = {
             previousPage: prevPage,
@@ -98,6 +105,10 @@ export const listAllMovies = async (request: Request, response: Response): Promi
 
         const queryResult:moviesResult = await client.query(query)
 
+        if (queryResult.rowCount < 5) {
+            nextPage = null
+        }
+
         const listMoviesResult: allMoviesResult = {
             previousPage: prevPage,
             nextPage: nextPage,
@@ -118,6 +129,10 @@ export const listAllMovies = async (request: Request, response: Response): Promi
         `,`${perPage}`,`${perPage * (page - 1)}`)
 
         const queryResult:moviesResult = await client.query(query)
+
+        if (queryResult.rowCount < 5) {
+            nextPage = null
+        }
 
         const listMoviesResult: allMoviesResult = {
             previousPage: prevPage,
@@ -141,6 +156,9 @@ export const listAllMovies = async (request: Request, response: Response): Promi
 
     const queryResult:moviesResult = await client.query(query)
 
+    if (queryResult.rowCount < 5) {
+        nextPage = null
+    }
 
     const listMoviesResult: allMoviesResult = {
         previousPage: prevPage,

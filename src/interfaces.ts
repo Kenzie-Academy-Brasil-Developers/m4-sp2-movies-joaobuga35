@@ -15,7 +15,7 @@ export type moviesResult = QueryResult<iMovies>;
 
 export interface allMoviesResult {
     previousPage?: string | null,
-    nextPage?: string,
+    nextPage?: string | null,
     count: number,
     data: Array<iMovies>
 }
