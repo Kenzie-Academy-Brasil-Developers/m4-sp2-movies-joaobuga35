@@ -1,13 +1,20 @@
-import express, { Application, json, request, Request, response, Response } from 'express';
+import express, { Application, json, Request, Response } from 'express';
+import { startDatabase } from './database';
+import { createMovies, deleteMovie, editMovie, listAllMovies } from './logics';
+import { verifyMovieExists, verifyMovieNameExits } from './middlewares';
+
 
 const app:Application = express()
 app.use(json());
 
-app.get('/purchaseList', (request: Request, response: Response): Response => {
-    return response.status(200).json()
-})
+app.post('/movies', createMovies)
+app.get('/movies',listAllMovies)
+app.patch('/movies/:id',verifyMovieExists,verifyMovieNameExits,editMovie)
+app.delete('/movies/:id',verifyMovieExists,deleteMovie)
 
-app.listen(3000, () => {
+
+app.listen(3000, async () => {
+    await startDatabase()
     console.log("Server is running http://localhost:3000")
 })
 
