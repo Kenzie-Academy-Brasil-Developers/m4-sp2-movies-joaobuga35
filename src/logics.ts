@@ -7,31 +7,27 @@ import { allMoviesResult, iMovies, moviesCreate, moviesResult } from "./interfac
 export const createMovies = async (request: Request, response: Response): Promise<Response> => {
     try {
         const movieCreateRequest: moviesCreate = request.body
+        const moviesCreateKeys: Array<string> = Object.keys(request.body)
+        const moviesCreateValues: any = Object.values(request.body)
 
-        if (movieCreateRequest.description === "") {
+        if (movieCreateRequest.description === null) {
             movieCreateRequest.description = null
         }
     
-        const queryString : string = `
-                INSERT INTO 
-                movies_favorites("name", description, duration, price)
-                VALUES ($1, $2, $3, $4)
-                RETURNING *;
-            `
+        const queryString : string = format(`
+            INSERT INTO 
+                movies(%I)
+            VALUES 
+                (%L)
+            RETURNING *;
+        `,moviesCreateKeys,moviesCreateValues)
                 
-        const queryConfig: QueryConfig = {
-            text: queryString,
-            values: Object.values(movieCreateRequest)
-        }
-                
-        const queryResult:moviesResult = await client.query(queryConfig);
-        const newMovie: iMovies = queryResult.rows[0]
+        const queryResult:moviesResult = await client.query(queryString);
 
-        
-        return response.status(201).json(newMovie)
+        return response.status(201).json(queryResult.rows[0])
         
     } catch (error) {
-        return response.status(409).json({message: 'Movie already exists.'})
+        return response.status(500).json({message: 'Internal Server Error.'})
     }
 }
 
@@ -42,7 +38,7 @@ export const listAllMovies = async (request: Request, response: Response): Promi
             SELECT 
                 *
             FROM 
-                movies_favorites
+                movies
         `
         const queryResult:moviesResult = await client.query(query)
         return response.status(200).json(queryResult.rows)
@@ -69,7 +65,7 @@ export const listAllMovies = async (request: Request, response: Response): Promi
                 SELECT 
                     *
                 FROM
-                    movies_favorites
+                    movies
                 ORDER BY
                     %I ASC
                 LIMIT %L OFFSET %L;
@@ -99,7 +95,7 @@ export const listAllMovies = async (request: Request, response: Response): Promi
             SELECT 
                 *
             FROM
-                movies_favorites
+                movies
             LIMIT %L OFFSET %L;
         `,`${perPage}`,`${perPage * (page - 1)}`)
 
@@ -124,7 +120,7 @@ export const listAllMovies = async (request: Request, response: Response): Promi
             SELECT 
                 *
             FROM
-                movies_favorites
+                movies
             LIMIT %L OFFSET %L;
         `,`${perPage}`,`${perPage * (page - 1)}`)
 
@@ -148,7 +144,7 @@ export const listAllMovies = async (request: Request, response: Response): Promi
         SELECT 
             *
         FROM
-            movies_favorites
+            movies
         ORDER BY
             %I %s
         LIMIT %L OFFSET %L;
@@ -176,7 +172,7 @@ export const editMovie =  async (request:Request, response: Response): Promise<R
 
     const query: string = `
         UPDATE
-            movies_favorites
+            movies
         SET(%I) = ROW(%L)
         WHERE
             id = $1
@@ -198,7 +194,7 @@ export const deleteMovie =  async (request:Request, response: Response): Promise
     const id: number = parseInt(request.params.id)
 
     const query: string = `
-        DELETE FROM movies_favorites WHERE id = $1
+        DELETE FROM movies WHERE id = $1
     `
 
     const queryConfig: QueryConfig = {
