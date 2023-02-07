@@ -10,7 +10,7 @@ export const verifyMovieNameExits = async (request: Request, response: Response,
         SELECT
             *
         FROM 
-            movies_favorites
+            movies
         WHERE 
             name = $1;
     `
@@ -38,7 +38,7 @@ export const verifyMovieExists = async (request: Request, response: Response, ne
         SELECT 
             *
         FROM 
-            movies_favorites
+            movies
         WHERE 
             id = $1;
     `

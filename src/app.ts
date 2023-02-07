@@ -7,7 +7,7 @@ import { verifyMovieExists, verifyMovieNameExits } from './middlewares';
 const app:Application = express()
 app.use(json());
 
-app.post('/movies', createMovies)
+app.post('/movies',verifyMovieNameExits, createMovies)
 app.get('/movies',listAllMovies)
 app.patch('/movies/:id',verifyMovieExists,verifyMovieNameExits,editMovie)
 app.delete('/movies/:id',verifyMovieExists,deleteMovie)
