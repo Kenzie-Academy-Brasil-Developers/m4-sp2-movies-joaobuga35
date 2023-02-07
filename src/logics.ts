@@ -32,6 +32,20 @@ export const createMovies = async (request: Request, response: Response): Promis
 }
 
 export const listAllMovies = async (request: Request, response: Response): Promise<Response> => {
+    if (!request.query.page && !request.query.perPage && request.query.sort && request.query.order) {
+        const query: string = format(`
+            SELECT 
+                *
+            FROM
+                movies
+            ORDER BY
+                %I %s;
+        `,`${request.query.sort}`,`${request.query.order}`)
+
+        const queryResult:moviesResult = await client.query(query)
+        return response.status(200).json(queryResult.rows)
+    }
+
     if (!request.query.page && !request.query.perPage) {
         
         const query: string = `
@@ -72,8 +86,9 @@ export const listAllMovies = async (request: Request, response: Response): Promi
         `,`${request.query.sort}`,`${perPage}`,`${perPage * (page - 1)}`)
 
         const queryResult:moviesResult = await client.query(query)
+        
 
-        if (queryResult.rowCount < 5) {
+        if (queryResult.rowCount === 0 || queryResult.rowCount < 5) {
             nextPage = null
         }
 
@@ -101,7 +116,7 @@ export const listAllMovies = async (request: Request, response: Response): Promi
 
         const queryResult:moviesResult = await client.query(query)
 
-        if (queryResult.rowCount < 5) {
+        if (queryResult.rowCount === 0 || queryResult.rowCount < 5) {
             nextPage = null
         }
 
@@ -126,7 +141,7 @@ export const listAllMovies = async (request: Request, response: Response): Promi
 
         const queryResult:moviesResult = await client.query(query)
 
-        if (queryResult.rowCount < 5) {
+        if (queryResult.rowCount === 0 || queryResult.rowCount < 5) {
             nextPage = null
         }
 
@@ -152,7 +167,7 @@ export const listAllMovies = async (request: Request, response: Response): Promi
 
     const queryResult:moviesResult = await client.query(query)
 
-    if (queryResult.rowCount < 5) {
+    if (queryResult.rowCount === 0 || queryResult.rowCount < 5) {
         nextPage = null
     }
 
