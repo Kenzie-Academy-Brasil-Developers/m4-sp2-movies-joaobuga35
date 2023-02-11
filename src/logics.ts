@@ -32,6 +32,12 @@ export const createMovies = async (request: Request, response: Response): Promis
 }
 
 export const listAllMovies = async (request: Request, response: Response): Promise<Response> => {
+    let page : number = Number(request.query.page) || 1
+    let perPage : number = Number(request.query.perPage) || 5
+    let baseUrl: string = 'http://localhost:3000/movies'
+    let prevPage:string | null = page === 1 ? null : `${baseUrl}?page=${page - 1}&perPage=${perPage}`
+    let nextPage: string | null = `${baseUrl}?page=${page + 1}&perPage=${perPage}`
+
     if (!request.query.page && !request.query.perPage && request.query.sort && request.query.order) {
         const query: string = format(`
             SELECT 
@@ -43,7 +49,18 @@ export const listAllMovies = async (request: Request, response: Response): Promi
         `,`${request.query.sort}`,`${request.query.order}`)
 
         const queryResult:moviesResult = await client.query(query)
-        return response.status(200).json(queryResult.rows)
+
+        if (queryResult.rowCount === 0 || queryResult.rowCount < 5) {
+            nextPage = null
+        }
+
+        const listMoviesResult: allMoviesResult = {
+            previousPage: prevPage,
+            nextPage: null,
+            count: queryResult.rowCount,
+            data:[...queryResult.rows]
+        }
+        return response.status(200).json(listMoviesResult)
     }
 
     if (!request.query.page && !request.query.perPage) {
@@ -55,11 +72,15 @@ export const listAllMovies = async (request: Request, response: Response): Promi
                 movies
         `
         const queryResult:moviesResult = await client.query(query)
-        return response.status(200).json(queryResult.rows)
-    }
 
-    let page : number = Number(request.query.page) || 1
-    let perPage : number = Number(request.query.perPage) || 5
+        const listMoviesResult: allMoviesResult = {
+            previousPage: prevPage,
+            nextPage: null,
+            count: queryResult.rowCount,
+            data:[...queryResult.rows]
+        }
+        return response.status(200).json(listMoviesResult)
+    }
 
     if (0 > page) {
         page = 1
@@ -68,11 +89,6 @@ export const listAllMovies = async (request: Request, response: Response): Promi
     if (0 > perPage || perPage > 5) {
         perPage = 5
     }
-
-    let baseUrl: string = 'http://localhost:3000/movies'
-    let prevPage:string | null = page === 1 ? null : `${baseUrl}?page=${page - 1}&perPage=${perPage}`
-    let nextPage: string | null = `${baseUrl}?page=${page + 1}&perPage=${perPage}`
-
 
     if (request.query.sort && !request.query.order) {
             const query: string = format(`
